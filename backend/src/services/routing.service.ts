@@ -93,8 +93,8 @@ export interface TourRoute {
 }
 
 export class RoutingService {
-  private mapboxApiKey?: string
-  private googleMapsApiKey?: string
+  private mapboxApiKey: string | undefined
+  private googleMapsApiKey: string | undefined
 
   constructor() {
     this.mapboxApiKey = process.env.MAPBOX_ACCESS_TOKEN
@@ -124,9 +124,7 @@ export class RoutingService {
         steps: this.generateMockSteps(origin, destination),
         polyline: this.encodePolyline([origin, destination]),
         bounds: this.calculateBounds([origin, destination]),
-        warnings: accessibility
-          ? ["Route optimized for accessibility"]
-          : undefined,
+        warnings: accessibility ? ["Route optimized for accessibility"] : [],
       }
 
       return mockRoute

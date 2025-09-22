@@ -237,7 +237,7 @@ export class PlacesService {
     try {
       const query = "DELETE FROM places WHERE id = $1"
       const result = await this.pool.query(query, [id])
-      return result.rowCount > 0
+      return (result.rowCount ?? 0) > 0
     } catch (error) {
       console.error("Error deleting place:", error)
       throw new Error("Failed to delete place")
@@ -260,7 +260,11 @@ export class PlacesService {
         sin(radians($1)) * sin(radians((coordinates->>'lat')::float)))) <= $3
       `
 
-      const values = [params.lat, params.lng, params.radius || 1.0]
+      const values: (string | number)[] = [
+        params.lat,
+        params.lng,
+        params.radius || 1.0,
+      ]
       let paramCount = 3
 
       if (params.category) {

@@ -4,6 +4,11 @@ import { ValidationUtils } from "../utils/validation"
 import { logger } from "../utils/logger"
 import pool from "../db/pool"
 
+// Helper function for error handling
+const getErrorMessage = (error: unknown): string => {
+  return error instanceof Error ? error.message : "Unknown error"
+}
+
 export class PlacesController {
   private placesService: PlacesService
 
@@ -21,8 +26,8 @@ export class PlacesController {
       const params = {
         category: category as string,
         search: search as string,
-        limit: limit ? parseInt(limit as string) : undefined,
-        offset: offset ? parseInt(offset as string) : undefined,
+        limit: limit ? parseInt(limit as string) : 50,
+        offset: offset ? parseInt(offset as string) : 0,
         accessibility: accessibility === "true",
       }
 
@@ -43,7 +48,9 @@ export class PlacesController {
         filters: params,
       })
     } catch (error) {
-      logger.error("Error retrieving places", { error: error.message })
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error"
+      logger.error("Error retrieving places", { error: errorMessage })
       res.status(500).json({
         message: "Failed to retrieve places",
         error: "PLACES_RETRIEVAL_ERROR",
@@ -82,7 +89,7 @@ export class PlacesController {
     } catch (error) {
       logger.error("Error retrieving place by ID", {
         placeId: req.params.id,
-        error: error.message,
+        error: getErrorMessage(error),
       })
       res.status(500).json({
         message: "Failed to retrieve place",
@@ -157,7 +164,7 @@ export class PlacesController {
       })
     } catch (error) {
       logger.error("Error creating place", {
-        error: error.message,
+        error: getErrorMessage(error),
         userId: req.user?.id,
       })
       res.status(500).json({
@@ -232,7 +239,7 @@ export class PlacesController {
     } catch (error) {
       logger.error("Error updating place", {
         placeId: req.params.id,
-        error: error.message,
+        error: getErrorMessage(error),
         userId: req.user?.id,
       })
       res.status(500).json({
@@ -278,7 +285,7 @@ export class PlacesController {
     } catch (error) {
       logger.error("Error deleting place", {
         placeId: req.params.id,
-        error: error.message,
+        error: getErrorMessage(error),
         userId: req.user?.id,
       })
       res.status(500).json({
@@ -326,7 +333,7 @@ export class PlacesController {
     } catch (error) {
       logger.error("Error retrieving nearby places", {
         coordinates: { lat: req.params.lat, lng: req.params.lng },
-        error: error.message,
+        error: getErrorMessage(error),
       })
       res.status(500).json({
         message: "Failed to retrieve nearby places",
@@ -371,7 +378,7 @@ export class PlacesController {
     } catch (error) {
       logger.error("Error searching places", {
         query: req.query.q,
-        error: error.message,
+        error: getErrorMessage(error),
       })
       res.status(500).json({
         message: "Failed to search places",
@@ -397,7 +404,7 @@ export class PlacesController {
       })
     } catch (error) {
       logger.error("Error retrieving popular places", {
-        error: error.message,
+        error: getErrorMessage(error),
       })
       res.status(500).json({
         message: "Failed to retrieve popular places",

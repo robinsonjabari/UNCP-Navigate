@@ -1,6 +1,6 @@
-import { pool } from "../db/pool"
+import pool from "../db/pool"
 import { logger } from "../utils/logger"
-import { User, CreateUserData, UpdateUserData } from "../types"
+import { User, DatabaseUser, CreateUserData, UpdateUserData } from "../types"
 
 export class AuthService {
   /**
@@ -250,7 +250,7 @@ export class AuthService {
 
       const result = await client.query(query, [id])
 
-      const deleted = result.rowCount > 0
+      const deleted = (result.rowCount ?? 0) > 0
 
       if (deleted) {
         logger.info("User soft deleted from database", { userId: id })

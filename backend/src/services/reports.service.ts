@@ -1,4 +1,4 @@
-import { pool } from "../db/pool"
+import pool from "../db/pool"
 import { logger } from "../utils/logger"
 import {
   Report,
@@ -235,7 +235,7 @@ export class ReportsService {
 
       const result = await client.query(query, values)
 
-      const deleted = result.rowCount > 0
+      const deleted = (result.rowCount ?? 0) > 0
 
       if (deleted) {
         logger.info("Report soft deleted from database", {

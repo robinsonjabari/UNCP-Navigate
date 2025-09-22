@@ -1,10 +1,14 @@
 import { Request, Response } from "express"
 import jwt from "jsonwebtoken"
-import bcrypt from "bcryptjs"
 import { AuthService } from "../services/auth.service"
 import { ValidationUtils } from "../utils/validation"
 import { PasswordUtils } from "../utils/password"
 import { logger } from "../utils/logger"
+import {
+  generateToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../middleware/auth"
 
 export class AuthController {
   private authService: AuthService
@@ -13,9 +17,7 @@ export class AuthController {
     this.authService = new AuthService()
   }
 
-  /**
-   * User registration
-   */
+  /** User registration */
   async register(req: Request, res: Response): Promise<void> {
     try {
       const {
@@ -94,18 +96,14 @@ export class AuthController {
       const user = await this.authService.createUser(userData)
 
       // Generate JWT token
-      const token = jwt.sign(
-        {
-          userId: user.id,
-          email: user.email,
-          role: user.role,
-        },
-        process.env.JWT_SECRET!,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
-      )
+      const token = generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+      })
 
       // Return user data without password
-      const { password: _, ...userWithoutPassword } = user
+      const { password: _, ...userWithoutPassword } = user as any
 
       res.status(201).json({
         message: "User registered successfully",

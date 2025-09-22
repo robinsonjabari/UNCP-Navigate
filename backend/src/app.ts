@@ -1,4 +1,4 @@
-import express, { Application, Request, Response, NextFunction } from "express"
+import express, { Application, Request, Response } from "express"
 import cors from "cors"
 import helmet from "helmet"
 import morgan from "morgan"
@@ -90,7 +90,7 @@ class App {
 
   private initializeRoutes(): void {
     // Health check endpoint
-    this.app.get("/health", (req: Request, res: Response) => {
+    this.app.get("/health", (_req: Request, res: Response) => {
       res.status(200).json({
         status: "OK",
         timestamp: new Date().toISOString(),
@@ -112,7 +112,7 @@ class App {
       this.app.use(express.static("public"))
 
       // Serve React app for all non-API routes
-      this.app.get("*", (req: Request, res: Response) => {
+      this.app.get("*", (_req: Request, res: Response) => {
         res.sendFile("index.html", { root: "public" })
       })
     }

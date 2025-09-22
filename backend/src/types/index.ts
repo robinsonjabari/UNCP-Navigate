@@ -44,6 +44,12 @@ export interface User {
   updatedAt: Date
 }
 
+// Database user type (includes password for service layer)
+export interface DatabaseUser extends User {
+  password: string
+  studentId?: string
+}
+
 export type UserRole = "student" | "faculty" | "staff" | "visitor" | "admin"
 
 export interface CreateUserRequest {
@@ -52,6 +58,26 @@ export interface CreateUserRequest {
   firstName: string
   lastName: string
   role?: UserRole
+}
+
+// Additional types for service layer
+export interface CreateUserData {
+  email: string
+  password: string
+  firstName: string
+  lastName: string
+  studentId?: string
+  role: UserRole
+}
+
+export interface UpdateUserData {
+  email?: string
+  firstName?: string
+  lastName?: string
+  studentId?: string
+  role?: UserRole
+  isActive?: boolean
+  emailVerified?: boolean
 }
 
 export interface LoginRequest {
@@ -375,4 +401,43 @@ export interface ApiUsage {
   userAgent?: string
   sessionId?: string
   createdAt: Date
+}
+
+// Report types
+export interface Report {
+  id: string
+  userId?: string
+  type: ReportType
+  title: string
+  description: string
+  priority: ReportPriority
+  status: ReportStatus
+  location?: Coordinates
+  placeId?: string
+  attachments?: string[]
+  metadata?: any
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type ReportType =
+  | "issue"
+  | "accessibility"
+  | "safety"
+  | "maintenance"
+  | "suggestion"
+  | "other"
+export type ReportPriority = "low" | "medium" | "high" | "urgent"
+export type ReportStatus = "pending" | "in-progress" | "resolved" | "closed"
+
+export interface CreateReportData {
+  userId?: string
+  type: ReportType
+  title: string
+  description: string
+  priority: ReportPriority
+  location?: Coordinates
+  placeId?: string
+  attachments?: string[]
+  metadata?: any
 }

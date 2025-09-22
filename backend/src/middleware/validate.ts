@@ -1,6 +1,18 @@
 import { Request, Response, NextFunction } from "express"
 import { validationResult, ValidationError } from "express-validator"
 
+// Use Express.Multer types instead
+declare global {
+  namespace Express {
+    interface Request {
+      file?: Express.Multer.File
+      files?:
+        | Express.Multer.File[]
+        | { [fieldname: string]: Express.Multer.File[] }
+    }
+  }
+}
+
 /**
  * Middleware to handle validation errors from express-validator
  */

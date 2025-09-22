@@ -29,12 +29,12 @@ pool.on("error", (err: Error) => {
 })
 
 // Handle pool connection
-pool.on("connect", (client) => {
+pool.on("connect", (_client) => {
   console.log("📊 New database client connected")
 })
 
 // Handle pool removal
-pool.on("remove", (client) => {
+pool.on("remove", (_client) => {
   console.log("📊 Database client removed")
 })
 

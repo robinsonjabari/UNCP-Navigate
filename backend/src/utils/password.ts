@@ -35,6 +35,16 @@ export class PasswordUtils {
   }
 
   /**
+   * Compare password with hash (alias for verifyPassword)
+   */
+  static async comparePassword(
+    password: string,
+    hash: string
+  ): Promise<boolean> {
+    return this.verifyPassword(password, hash)
+  }
+
+  /**
    * Validate password strength
    */
   static validatePasswordStrength(password: string): {

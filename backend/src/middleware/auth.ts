@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express"
 import jwt from "jsonwebtoken"
-import { Pool } from "pg"
 import pool from "../db/pool"
 
 // Extend Express Request interface to include user
@@ -242,7 +241,7 @@ export const generateToken = (user: {
       expiresIn: jwtExpiresIn,
       issuer: "uncp-navigate-api",
       audience: "uncp-navigate-client",
-    }
+    } as any
   )
 }
 
@@ -271,7 +270,7 @@ export const generateRefreshToken = (user: {
       expiresIn: refreshExpiresIn,
       issuer: "uncp-navigate-api",
       audience: "uncp-navigate-client",
-    }
+    } as any
   )
 }
 
