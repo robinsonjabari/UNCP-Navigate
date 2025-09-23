@@ -8,20 +8,18 @@ import {
 } from "../types"
 
 export class ReportsService {
-  /**
-   * Create a new report
-   */
+  /** Create a new report */
   async createReport(reportData: CreateReportData): Promise<Report> {
     const client = await pool.connect()
     try {
       const query = `
         INSERT INTO reports (
-          type, title, description, location, severity, 
-          submitted_by, status, created_at, updated_at
+          type, title, description, location, priority, 
+          user_id, status, created_at, updated_at
         )
-        VALUES ($1, $2, $3, $4, $5, $6, 'open', NOW(), NOW())
-        RETURNING id, type, title, description, location, severity, 
-                  submitted_by, status, created_at, updated_at
+        VALUES ($1, $2, $3, $4, $5, $6, 'pending', NOW(), NOW())
+        RETURNING id, type, title, description, location, priority, 
+                  user_id, status, created_at, updated_at
       `
 
       const values = [
@@ -29,8 +27,8 @@ export class ReportsService {
         reportData.title,
         reportData.description,
         JSON.stringify(reportData.location),
-        reportData.severity,
-        reportData.submittedBy,
+        reportData.priority, // Use priority instead of severity
+        reportData.userId, // Use userId instead of submittedBy
       ]
 
       const result = await client.query(query, values)
@@ -82,9 +80,9 @@ export class ReportsService {
         paramIndex++
       }
 
-      if (filters.severity) {
-        conditions.push(`severity = $${paramIndex}`)
-        values.push(filters.severity)
+      if (filters.priority) {
+        conditions.push(`priority = $${paramIndex}`)
+        values.push(filters.priority)
         paramIndex++
       }
 
@@ -96,7 +94,8 @@ export class ReportsService {
       const total = parseInt(countResult.rows[0].count)
 
       // Calculate pagination
-      const offset = (pagination.page - 1) * pagination.limit
+      const page = pagination.page || 1
+      const offset = (page - 1) * pagination.limit
       const totalPages = Math.ceil(total / pagination.limit)
 
       // Build ORDER BY clause
@@ -128,7 +127,7 @@ export class ReportsService {
       return {
         reports,
         total,
-        page: pagination.page,
+        page: page,
         totalPages,
       }
     } catch (error) {
@@ -359,14 +358,16 @@ export class ReportsService {
   private mapDbReportToReport(dbReport: any): Report {
     return {
       id: dbReport.id,
+      userId: dbReport.user_id,
       type: dbReport.type,
       title: dbReport.title,
       description: dbReport.description,
-      location: JSON.parse(dbReport.location),
-      severity: dbReport.severity,
-      submittedBy: dbReport.submitted_by,
+      priority: dbReport.priority,
       status: dbReport.status,
-      notes: dbReport.notes,
+      location: dbReport.location ? JSON.parse(dbReport.location) : undefined,
+      placeId: dbReport.place_id,
+      attachments: dbReport.attachments ? JSON.parse(dbReport.attachments) : [],
+      metadata: dbReport.metadata ? JSON.parse(dbReport.metadata) : {},
       createdAt: dbReport.created_at,
       updatedAt: dbReport.updated_at,
     }

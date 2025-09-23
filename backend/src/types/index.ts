@@ -34,20 +34,36 @@ export interface ErrorResponse {
 export interface User {
   id: string
   email: string
+  password: string // Include password for internal service use
   firstName: string
   lastName: string
+  studentId?: string
   role: UserRole
-  isActive: boolean
-  emailVerified: boolean
+  preferences?: any
+  isActive?: boolean
+  emailVerified?: boolean
   lastLogin?: Date
   createdAt: Date
   updatedAt: Date
 }
 
-// Database user type (includes password for service layer)
-export interface DatabaseUser extends User {
-  password: string
+// Database user type (alias for clarity)
+export interface DatabaseUser extends User {}
+
+// Public user type (without password for API responses)
+export interface PublicUser {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
   studentId?: string
+  role: UserRole
+  preferences?: any
+  isActive?: boolean
+  emailVerified?: boolean
+  lastLogin?: Date
+  createdAt: Date
+  updatedAt: Date
 }
 
 export type UserRole = "student" | "faculty" | "staff" | "visitor" | "admin"
@@ -71,6 +87,7 @@ export interface CreateUserData {
 }
 
 export interface UpdateUserData {
+  preferences?: any
   email?: string
   firstName?: string
   lastName?: string
@@ -86,9 +103,9 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  user: Omit<User, "createdAt" | "updatedAt">
+  user: Omit<PublicUser, "createdAt" | "updatedAt">
   token: string
-  refreshToken: string
+  refreshToken?: string
   expiresIn: string
 }
 
@@ -431,7 +448,7 @@ export type ReportPriority = "low" | "medium" | "high" | "urgent"
 export type ReportStatus = "pending" | "in-progress" | "resolved" | "closed"
 
 export interface CreateReportData {
-  userId?: string
+  userId?: string | undefined // Allow undefined explicitly
   type: ReportType
   title: string
   description: string
@@ -440,4 +457,23 @@ export interface CreateReportData {
   placeId?: string
   attachments?: string[]
   metadata?: any
+}
+
+// Filter and pagination types
+export interface ReportFilters {
+  type?: ReportType
+  status?: ReportStatus
+  priority?: ReportPriority
+  userId?: string
+  placeId?: string
+  startDate?: Date
+  endDate?: Date
+}
+
+export interface PaginationOptions {
+  limit: number
+  offset: number
+  page?: number
+  sortBy?: string
+  sortOrder?: "ASC" | "DESC"
 }

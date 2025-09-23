@@ -1,20 +1,23 @@
 import { Request, Response } from "express"
-import jwt from "jsonwebtoken"
+import jwt, { SignOptions } from "jsonwebtoken"
 import { AuthService } from "../services/auth.service"
 import { ValidationUtils } from "../utils/validation"
 import { PasswordUtils } from "../utils/password"
 import { logger } from "../utils/logger"
-import {
-  generateToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from "../middleware/auth"
+import { generateToken } from "../middleware/auth"
+import { User, PublicUser } from "../types"
 
 export class AuthController {
   private authService: AuthService
 
   constructor() {
     this.authService = new AuthService()
+  }
+
+  /** Convert User to PublicUser (removes password) */
+  private toPublicUser(user: User): PublicUser {
+    const { password, ...publicUser } = user
+    return publicUser
   }
 
   /** User registration */
@@ -103,11 +106,11 @@ export class AuthController {
       })
 
       // Return user data without password
-      const { password: _, ...userWithoutPassword } = user as any
+      const publicUser = this.toPublicUser(user)
 
       res.status(201).json({
         message: "User registered successfully",
-        user: userWithoutPassword,
+        user: publicUser,
         token,
       })
 
@@ -127,9 +130,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * User login
-   */
+  /** User login */
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body
@@ -179,22 +180,29 @@ export class AuthController {
       await this.authService.updateLastLogin(user.id)
 
       // Generate JWT token
+      const jwtSecret = process.env.JWT_SECRET
+      if (!jwtSecret) {
+        throw new Error("JWT_SECRET is not configured")
+      }
+
       const token = jwt.sign(
         {
           userId: user.id,
           email: user.email,
           role: user.role,
         },
-        process.env.JWT_SECRET!,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
+        jwtSecret,
+        {
+          expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+        } as SignOptions
       )
 
       // Return user data without password
-      const { password: _, ...userWithoutPassword } = user
+      const publicUser = this.toPublicUser(user)
 
       res.json({
         message: "Login successful",
-        user: userWithoutPassword,
+        user: publicUser,
         token,
       })
 
@@ -213,9 +221,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get current user profile
-   */
+  /** Get current user profile */
   async getProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id
@@ -238,9 +244,9 @@ export class AuthController {
       }
 
       // Return user data without password
-      const { password: _, ...userWithoutPassword } = user
+      const publicUser = this.toPublicUser(user)
 
-      res.json({ user: userWithoutPassword })
+      res.json({ user: publicUser })
 
       logger.info("User profile retrieved", { userId })
     } catch (error) {
@@ -255,9 +261,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Update user profile
-   */
+  /** Update user profile */
   async updateProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id
@@ -297,11 +301,11 @@ export class AuthController {
       }
 
       // Return user data without password
-      const { password: _, ...userWithoutPassword } = updatedUser
+      const publicUser = this.toPublicUser(updatedUser)
 
       res.json({
         message: "Profile updated successfully",
-        user: userWithoutPassword,
+        user: publicUser,
       })
 
       logger.info("User profile updated", {
@@ -320,9 +324,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Change password
-   */
+  /** Change password */
   async changePassword(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id
@@ -402,9 +404,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Logout user (invalidate token)
-   */
+  /** Logout user (invalidate token) */
   async logout(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id
@@ -430,9 +430,7 @@ export class AuthController {
     }
   }
 
-  /**
-   * Refresh JWT token
-   */
+  /** Refresh JWT token */
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user?.id
@@ -448,14 +446,21 @@ export class AuthController {
       }
 
       // Generate new JWT token
+      const jwtSecret = process.env.JWT_SECRET
+      if (!jwtSecret) {
+        throw new Error("JWT_SECRET is not configured")
+      }
+
       const newToken = jwt.sign(
         {
           userId,
           email: userEmail,
           role: userRole,
         },
-        process.env.JWT_SECRET!,
-        { expiresIn: process.env.JWT_EXPIRES_IN || "24h" }
+        jwtSecret,
+        {
+          expiresIn: process.env.JWT_EXPIRES_IN || "24h",
+        } as SignOptions
       )
 
       res.json({

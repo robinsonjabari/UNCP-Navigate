@@ -2,6 +2,7 @@ import { Request, Response } from "express"
 import { ReportsService } from "../services/reports.service"
 import { ValidationUtils } from "../utils/validation"
 import { logger } from "../utils/logger"
+import { ReportStatus, ReportType, ReportPriority } from "../types"
 
 export class ReportsController {
   private reportsService: ReportsService
@@ -77,12 +78,11 @@ export class ReportsController {
         title,
         description,
         location,
-        severity,
-        submittedBy: userId,
+        priority: severity, // Map severity to priority
+        userId, // Map submittedBy to userId
       }
 
       const report = await this.reportsService.createReport(reportData)
-
       res.status(201).json({
         message: "Report submitted successfully",
         report,
@@ -198,16 +198,17 @@ export class ReportsController {
       }
 
       const filters = {
-        status: status as string,
-        type: type as string,
-        severity: severity as string,
+        status: status as ReportStatus,
+        type: type as ReportType,
+        priority: severity as ReportPriority,
       }
 
       const pagination = {
         page: pageNum,
         limit: limitNum,
+        offset: (pageNum - 1) * limitNum,
         sortBy: sortBy as string,
-        sortOrder: sortOrder as "asc" | "desc",
+        sortOrder: sortOrder as "ASC" | "DESC",
       }
 
       const result = await this.reportsService.getReports(filters, pagination)

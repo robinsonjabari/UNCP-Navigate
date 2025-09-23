@@ -1,11 +1,9 @@
 import pool from "../db/pool"
 import { logger } from "../utils/logger"
-import { User, DatabaseUser, CreateUserData, UpdateUserData } from "../types"
+import { User, CreateUserData, UpdateUserData } from "../types"
 
 export class AuthService {
-  /**
-   * Create a new user
-   */
+  /** Create a new user */
   async createUser(userData: CreateUserData): Promise<User> {
     const client = await pool.connect()
     try {
@@ -43,9 +41,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Get user by email
-   */
+  /** Get user by email */
   async getUserByEmail(email: string): Promise<User | null> {
     const client = await pool.connect()
     try {
@@ -74,9 +70,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Get user by ID
-   */
+  /** Get user by ID */
   async getUserById(id: string): Promise<User | null> {
     const client = await pool.connect()
     try {
@@ -105,9 +99,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Update user data
-   */
+  /** Update user data */
   async updateUser(
     id: string,
     updateData: UpdateUserData
@@ -180,9 +172,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Update user password
-   */
+  /** Update user password */
   async updatePassword(id: string, hashedPassword: string): Promise<void> {
     const client = await pool.connect()
     try {
@@ -210,9 +200,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Update last login timestamp
-   */
+  /** Update last login timestamp */
   async updateLastLogin(id: string): Promise<void> {
     const client = await pool.connect()
     try {
@@ -236,9 +224,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Soft delete user
-   */
+  /** Soft delete user */
   async deleteUser(id: string): Promise<boolean> {
     const client = await pool.connect()
     try {
@@ -268,9 +254,7 @@ export class AuthService {
     }
   }
 
-  /**
-   * Map database user row to User interface
-   */
+  /** Map database user row to User interface */
   private mapDbUserToUser(dbUser: any): User {
     return {
       id: dbUser.id,
