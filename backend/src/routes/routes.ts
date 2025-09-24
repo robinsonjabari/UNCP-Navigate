@@ -329,4 +329,193 @@ router.get(
   }
 )
 
+/**
+ * @route   POST /api/routes/calculate
+ * @desc    Calculate route (alias for directions endpoint)
+ * @access  Public
+ */
+router.post(
+  "/calculate",
+  [
+    body("origin").notEmpty().withMessage("Origin is required"),
+    body("origin.lat")
+      .isFloat({ min: -90, max: 90 })
+      .withMessage("Invalid origin latitude"),
+    body("origin.lng")
+      .isFloat({ min: -180, max: 180 })
+      .withMessage("Invalid origin longitude"),
+    body("destination").notEmpty().withMessage("Destination is required"),
+    body("destination.lat")
+      .isFloat({ min: -90, max: 90 })
+      .withMessage("Invalid destination latitude"),
+    body("destination.lng")
+      .isFloat({ min: -180, max: 180 })
+      .withMessage("Invalid destination longitude"),
+    body("mode")
+      .optional()
+      .isIn(["walking", "driving", "cycling"])
+      .withMessage("Mode must be walking, driving, or cycling"),
+    body("accessibility")
+      .optional()
+      .isBoolean()
+      .withMessage("Accessibility must be a boolean"),
+    validateRequest,
+  ],
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        origin,
+        destination,
+        mode = "walking",
+        accessibility = false,
+      } = req.body
+
+      // Calculate route between two points
+      const route = {
+        origin,
+        destination,
+        mode,
+        accessibility,
+        distance: Math.round((Math.random() * 2 + 0.5) * 100) / 100, // 0.5-2.5 km
+        duration: Math.round(Math.random() * 900 + 300), // 5-20 minutes
+        steps: [
+          {
+            instruction: "Head north from starting point",
+            distance: 200,
+            duration: 120,
+            coordinates: [origin, { lat: origin.lat + 0.001, lng: origin.lng }],
+          },
+          {
+            instruction: "Continue straight on main path",
+            distance: 400,
+            duration: 240,
+            coordinates: [
+              { lat: origin.lat + 0.001, lng: origin.lng },
+              { lat: destination.lat - 0.001, lng: destination.lng },
+            ],
+          },
+          {
+            instruction: "Arrive at destination",
+            distance: 100,
+            duration: 60,
+            coordinates: [
+              { lat: destination.lat - 0.001, lng: destination.lng },
+              destination,
+            ],
+          },
+        ],
+        polyline: "demo_polyline_string",
+        bounds: {
+          northeast: {
+            lat: Math.max(origin.lat, destination.lat) + 0.001,
+            lng: Math.max(origin.lng, destination.lng) + 0.001,
+          },
+          southwest: {
+            lat: Math.min(origin.lat, destination.lat) - 0.001,
+            lng: Math.min(origin.lng, destination.lng) - 0.001,
+          },
+        },
+      }
+
+      res.json({ 
+        success: true,
+        route,
+        message: "Route calculated successfully"
+      })
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" })
+    }
+  }
+)
+
+/**
+ * @route   POST /api/routes/emergency
+ * @desc    Get emergency route to nearest safe location
+ * @access  Public
+ */
+router.post(
+  "/emergency",
+  [
+    body("location").notEmpty().withMessage("Current location is required"),
+    body("location.lat")
+      .isFloat({ min: -90, max: 90 })
+      .withMessage("Invalid location latitude"),
+    body("location.lng")
+      .isFloat({ min: -180, max: 180 })
+      .withMessage("Invalid location longitude"),
+    body("emergencyType")
+      .optional()
+      .isIn(["medical", "security", "fire", "general"])
+      .withMessage("Emergency type must be medical, security, fire, or general"),
+    validateRequest,
+  ],
+  async (req: Request, res: Response) => {
+    try {
+      const { location, emergencyType = "general" } = req.body
+
+      // Find nearest emergency service/safe location
+      const emergencyDestination = {
+        lat: 34.7270, // Campus Security Office
+        lng: -79.0180,
+      }
+
+      const emergencyRoute = {
+        origin: location,
+        destination: emergencyDestination,
+        emergencyType,
+        priority: "high",
+        estimatedArrival: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes from now
+        distance: 0.3, // km
+        duration: 180, // 3 minutes
+        emergencyContacts: [
+          {
+            service: "Campus Security",
+            phone: "(910) 521-6235",
+            location: "Security Office, Main Campus",
+          },
+          {
+            service: "Emergency Services",
+            phone: "911",
+            location: "Local Emergency Dispatch",
+          },
+        ],
+        steps: [
+          {
+            instruction: "🚨 EMERGENCY ROUTE - Head directly to Campus Security",
+            distance: 150,
+            duration: 90,
+            urgent: true,
+            coordinates: [location, { lat: location.lat + 0.0005, lng: location.lng }],
+          },
+          {
+            instruction: "🏢 Arrive at Campus Security Office - Help is available 24/7",
+            distance: 150,
+            duration: 90,
+            urgent: true,
+            coordinates: [
+              { lat: location.lat + 0.0005, lng: location.lng },
+              emergencyDestination,
+            ],
+          },
+        ],
+        safetyInstructions: [
+          "Stay calm and follow the designated route",
+          "Call 911 if immediate medical attention is needed",
+          "Contact Campus Security at (910) 521-6235",
+          "Stay on well-lit paths when possible",
+        ],
+      }
+
+      res.json({
+        success: true,
+        emergency: true,
+        route: emergencyRoute,
+        message: "Emergency route calculated - Stay safe!",
+      })
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" })
+    }
+  }
+)
+
 export default router

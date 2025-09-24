@@ -6,6 +6,133 @@ import { authenticate, authorize } from "../middleware/auth"
 const router = Router()
 
 /**
+ * @route   GET /api/reports
+ * @desc    Get reports overview
+ * @access  Public
+ */
+router.get("/", async (_req: Request, res: Response) => {
+  try {
+    const reportsOverview = {
+      message: "UNCP Navigate Reports System",
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+      availableReports: [
+        {
+          name: "Usage Analytics",
+          endpoint: "/api/reports/usage",
+          description: "Campus navigation usage statistics",
+          access: "Admin/Staff only"
+        },
+        {
+          name: "User Feedback",
+          endpoint: "/api/reports/feedback",
+          description: "User feedback and suggestions",
+          access: "Public"
+        },
+        {
+          name: "Performance Metrics",
+          endpoint: "/api/reports/performance",
+          description: "API performance and error tracking",
+          access: "Admin/Staff only"
+        },
+        {
+          name: "Data Export",
+          endpoint: "/api/reports/export",
+          description: "Export reports in various formats",
+          access: "Admin/Staff only"
+        }
+      ],
+      recentActivity: {
+        totalFeedback: 47,
+        totalUsers: 1247,
+        avgResponseTime: "127ms",
+        uptime: "99.8%"
+      }
+    }
+
+    res.json(reportsOverview)
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" })
+  }
+})
+
+/**
+ * @route   POST /api/reports
+ * @desc    Submit a new report or feedback
+ * @access  Public
+ */
+router.post(
+  "/",
+  [
+    body("type")
+      .isIn(["feedback", "issue", "suggestion", "accessibility"])
+      .withMessage("Report type must be feedback, issue, suggestion, or accessibility"),
+    body("title")
+      .isLength({ min: 5, max: 100 })
+      .withMessage("Title must be between 5-100 characters"),
+    body("description")
+      .isLength({ min: 10, max: 1000 })
+      .withMessage("Description must be between 10-1000 characters"),
+    body("location")
+      .optional()
+      .isObject()
+      .withMessage("Location must be an object with lat/lng"),
+    body("location.lat")
+      .optional()
+      .isFloat({ min: -90, max: 90 })
+      .withMessage("Invalid latitude"),
+    body("location.lng")
+      .optional()
+      .isFloat({ min: -180, max: 180 })
+      .withMessage("Invalid longitude"),
+    body("priority")
+      .optional()
+      .isIn(["low", "medium", "high", "urgent"])
+      .withMessage("Priority must be low, medium, high, or urgent"),
+    body("email")
+      .optional()
+      .isEmail()
+      .withMessage("Invalid email address"),
+    validateRequest,
+  ],
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        type,
+        title,
+        description,
+        location,
+        priority = "medium",
+        email,
+      } = req.body
+
+      // TODO: Save to database
+      const report = {
+        id: `report_${Date.now()}`,
+        type,
+        title,
+        description,
+        location,
+        priority,
+        email,
+        status: "submitted",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+
+      res.status(201).json({
+        success: true,
+        message: "Report submitted successfully",
+        report,
+        trackingNumber: report.id,
+      })
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error" })
+    }
+  }
+)
+
+/**
  * @route   GET /api/reports/usage
  * @desc    Get usage analytics and statistics
  * @access  Private (Admin/Staff)

@@ -94,7 +94,7 @@ router.get(
 router.get(
   "/:id",
   [
-    param("id").isUUID().withMessage("Invalid place ID format"),
+    param("id").isLength({ min: 1, max: 50 }).withMessage("Invalid place ID format"),
     validateRequest,
   ],
   async (req: Request, res: Response) => {

@@ -104,7 +104,7 @@ class App {
           reports: "/api/reports",
           auth: "/api/auth",
         },
-        documentation: "Visit /api for detailed API information"
+        documentation: "Visit /api for detailed API information",
       })
     })
 
