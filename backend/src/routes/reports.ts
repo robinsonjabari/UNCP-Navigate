@@ -248,7 +248,8 @@ router.get(
   ],
   async (req: Request, res: Response) => {
     try {
-      // TODO: Implement performance metrics collection
+      // TODO: Implement performance metrics collection using req.query parameters
+      void req // Will use req.query.metric when implemented
       const performanceData = {
         responseTime: {
           average: 245, // ms

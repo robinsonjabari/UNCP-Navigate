@@ -99,6 +99,11 @@ export class RoutingService {
   constructor() {
     this.mapboxApiKey = process.env.MAPBOX_ACCESS_TOKEN
     this.googleMapsApiKey = process.env.GOOGLE_MAPS_API_KEY
+
+    // Store API keys for future external routing service integration
+    // Currently using internal routing algorithms
+    void this.mapboxApiKey
+    void this.googleMapsApiKey
   }
 
   /**

@@ -89,6 +89,25 @@ class App {
   }
 
   private initializeRoutes(): void {
+    // Root endpoint
+    this.app.get("/", (_req: Request, res: Response) => {
+      res.json({
+        message: "🧭 UNCP Navigate API is running!",
+        version: "1.0.0",
+        status: "active",
+        timestamp: new Date().toISOString(),
+        endpoints: {
+          api: "/api",
+          health: "/health",
+          places: "/api/places",
+          routes: "/api/routes",
+          reports: "/api/reports",
+          auth: "/api/auth",
+        },
+        documentation: "Visit /api for detailed API information"
+      })
+    })
+
     // Health check endpoint
     this.app.get("/health", (_req: Request, res: Response) => {
       res.status(200).json({

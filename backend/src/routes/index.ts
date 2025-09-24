@@ -7,7 +7,7 @@ const router = Router()
  * @desc    API welcome message and status
  * @access  Public
  */
-router.get("/", (req: Request, res: Response) => {
+router.get("/", (_req: Request, res: Response) => {
   res.json({
     message: "Welcome to UNCP Navigate API",
     version: "1.0.0",
@@ -34,7 +34,7 @@ router.get("/", (req: Request, res: Response) => {
  * @desc    Detailed API status with system information
  * @access  Public
  */
-router.get("/status", (req: Request, res: Response) => {
+router.get("/status", (_req: Request, res: Response) => {
   res.json({
     status: "healthy",
     timestamp: new Date().toISOString(),

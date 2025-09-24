@@ -47,7 +47,7 @@ export const validateRequest = (
  */
 export const sanitizeInput = (
   req: Request,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   // Sanitize common fields

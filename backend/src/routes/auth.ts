@@ -98,7 +98,7 @@ router.post(
  * @desc    Logout user and invalidate token
  * @access  Private
  */
-router.post("/logout", authenticate, async (req: Request, res: Response) => {
+router.post("/logout", authenticate, async (_req: Request, res: Response) => {
   try {
     // TODO: Implement logout logic (blacklist token)
     res.json({ message: "Logout successful" })
@@ -118,7 +118,7 @@ router.post(
     body("refreshToken").notEmpty().withMessage("Refresh token is required"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (_req: Request, res: Response) => {
     try {
       // TODO: Implement token refresh logic
       res.json({
@@ -137,7 +137,7 @@ router.post(
  * @desc    Get current user profile
  * @access  Private
  */
-router.get("/me", authenticate, async (req: Request, res: Response) => {
+router.get("/me", authenticate, async (_req: Request, res: Response) => {
   try {
     // TODO: Get user from database using req.user.id
     res.json({
@@ -208,7 +208,7 @@ router.post(
       .withMessage("Please provide a valid email"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (_req: Request, res: Response) => {
     try {
       // TODO: Implement password reset email logic
       res.json({ message: "Password reset email sent" })

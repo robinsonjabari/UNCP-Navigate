@@ -177,7 +177,8 @@ router.get(
   ],
   async (req: Request, res: Response) => {
     try {
-      // TODO: Implement accessibility-specific routing
+      // TODO: Implement accessibility-specific routing using req.body coordinates
+      void req // Will use req.body.origin/destination when implemented
       const accessibleRoute = {
         distance: 0.9, // km (may be longer than regular route)
         duration: 660, // seconds (11 minutes)
@@ -228,7 +229,8 @@ router.get(
   ],
   async (req: Request, res: Response) => {
     try {
-      // TODO: Implement emergency routing
+      // TODO: Implement emergency routing using req.body parameters
+      void req // Will use req.body.currentLocation/emergencyType when implemented
       const emergencyRoutes = {
         primaryRoute: {
           destination: "Main Assembly Point",
@@ -288,7 +290,8 @@ router.get(
   ],
   async (req: Request, res: Response) => {
     try {
-      // TODO: Implement campus tour route generation
+      // TODO: Implement campus tour route generation using req.body parameters
+      void req // Will use req.body.interests/duration when implemented
       const tourRoutes = [
         {
           id: "highlights-tour",

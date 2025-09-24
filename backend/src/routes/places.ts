@@ -240,7 +240,8 @@ router.delete(
   ],
   async (req: Request, res: Response) => {
     try {
-      // TODO: Implement place deletion from database
+      // TODO: Implement place deletion from database using req.params.id
+      void req // Will use req.params.id when implemented
       res.json({ message: "Place deleted successfully" })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
@@ -268,7 +269,8 @@ router.get(
   ],
   async (req: Request, res: Response) => {
     try {
-      // TODO: Implement nearby places search
+      // TODO: Implement nearby places search using req.query lat/lng/radius
+      void req // Will use req.query parameters when implemented
       const nearbyPlaces = [
         {
           id: "1",
