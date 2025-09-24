@@ -21,33 +21,33 @@ router.get("/", async (_req: Request, res: Response) => {
           name: "Usage Analytics",
           endpoint: "/api/reports/usage",
           description: "Campus navigation usage statistics",
-          access: "Admin/Staff only"
+          access: "Admin/Staff only",
         },
         {
           name: "User Feedback",
           endpoint: "/api/reports/feedback",
           description: "User feedback and suggestions",
-          access: "Public"
+          access: "Public",
         },
         {
           name: "Performance Metrics",
           endpoint: "/api/reports/performance",
           description: "API performance and error tracking",
-          access: "Admin/Staff only"
+          access: "Admin/Staff only",
         },
         {
           name: "Data Export",
           endpoint: "/api/reports/export",
           description: "Export reports in various formats",
-          access: "Admin/Staff only"
-        }
+          access: "Admin/Staff only",
+        },
       ],
       recentActivity: {
         totalFeedback: 47,
         totalUsers: 1247,
         avgResponseTime: "127ms",
-        uptime: "99.8%"
-      }
+        uptime: "99.8%",
+      },
     }
 
     res.json(reportsOverview)
@@ -66,7 +66,9 @@ router.post(
   [
     body("type")
       .isIn(["feedback", "issue", "suggestion", "accessibility"])
-      .withMessage("Report type must be feedback, issue, suggestion, or accessibility"),
+      .withMessage(
+        "Report type must be feedback, issue, suggestion, or accessibility"
+      ),
     body("title")
       .isLength({ min: 5, max: 100 })
       .withMessage("Title must be between 5-100 characters"),
@@ -89,10 +91,7 @@ router.post(
       .optional()
       .isIn(["low", "medium", "high", "urgent"])
       .withMessage("Priority must be low, medium, high, or urgent"),
-    body("email")
-      .optional()
-      .isEmail()
-      .withMessage("Invalid email address"),
+    body("email").optional().isEmail().withMessage("Invalid email address"),
     validateRequest,
   ],
   async (req: Request, res: Response) => {

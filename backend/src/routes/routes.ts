@@ -417,10 +417,10 @@ router.post(
         },
       }
 
-      res.json({ 
+      res.json({
         success: true,
         route,
-        message: "Route calculated successfully"
+        message: "Route calculated successfully",
       })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
@@ -446,7 +446,9 @@ router.post(
     body("emergencyType")
       .optional()
       .isIn(["medical", "security", "fire", "general"])
-      .withMessage("Emergency type must be medical, security, fire, or general"),
+      .withMessage(
+        "Emergency type must be medical, security, fire, or general"
+      ),
     validateRequest,
   ],
   async (req: Request, res: Response) => {
@@ -455,8 +457,8 @@ router.post(
 
       // Find nearest emergency service/safe location
       const emergencyDestination = {
-        lat: 34.7270, // Campus Security Office
-        lng: -79.0180,
+        lat: 34.727, // Campus Security Office
+        lng: -79.018,
       }
 
       const emergencyRoute = {
@@ -481,14 +483,18 @@ router.post(
         ],
         steps: [
           {
-            instruction: "🚨 EMERGENCY ROUTE - Head directly to Campus Security",
+            instruction: "EMERGENCY ROUTE - Head directly to Campus Security",
             distance: 150,
             duration: 90,
             urgent: true,
-            coordinates: [location, { lat: location.lat + 0.0005, lng: location.lng }],
+            coordinates: [
+              location,
+              { lat: location.lat + 0.0005, lng: location.lng },
+            ],
           },
           {
-            instruction: "🏢 Arrive at Campus Security Office - Help is available 24/7",
+            instruction:
+              "Arrive at Campus Security Office - Help is available 24/7",
             distance: 150,
             duration: 90,
             urgent: true,

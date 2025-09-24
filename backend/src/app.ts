@@ -92,7 +92,7 @@ class App {
     // Root endpoint
     this.app.get("/", (_req: Request, res: Response) => {
       res.json({
-        message: "🧭 UNCP Navigate API is running!",
+        message: "UNCP Navigate API is running!",
         version: "1.0.0",
         status: "active",
         timestamp: new Date().toISOString(),
@@ -148,17 +148,15 @@ class App {
   public listen(): void {
     this.app.listen(this.port, process.env.HOST || "0.0.0.0", () => {
       console.log(
-        `🚀 UNCP Navigate API server running on http://${
+        `UNCP Navigate API server running on http://${
           process.env.HOST || "0.0.0.0"
         }:${this.port}`
       )
-      console.log(`📊 Environment: ${process.env.NODE_ENV}`)
-      console.log(`🔗 CORS enabled for: ${process.env.CORS_ORIGIN}`)
+      console.log(`Environment: ${process.env.NODE_ENV}`)
+      console.log(`CORS enabled for: ${process.env.CORS_ORIGIN}`)
 
       if (process.env.NODE_ENV === "development") {
-        console.log(
-          `📖 API Documentation: http://localhost:${this.port}/api/docs`
-        )
+        console.log(`API Documentation: http://localhost:${this.port}/api/docs`)
       }
     })
   }
@@ -173,12 +171,12 @@ const app = new App()
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
-  console.log("👋 SIGTERM received, shutting down gracefully")
+  console.log("SIGTERM received, shutting down gracefully")
   process.exit(0)
 })
 
 process.on("SIGINT", () => {
-  console.log("👋 SIGINT received, shutting down gracefully")
+  console.log("SIGINT received, shutting down gracefully")
   process.exit(0)
 })
 

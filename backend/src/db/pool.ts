@@ -30,12 +30,12 @@ pool.on("error", (err: Error) => {
 
 // Handle pool connection
 pool.on("connect", (_client) => {
-  console.log("📊 New database client connected")
+  console.log("New database client connected")
 })
 
 // Handle pool removal
 pool.on("remove", (_client) => {
-  console.log("📊 Database client removed")
+  console.log("Database client removed")
 })
 
 /**
@@ -66,7 +66,7 @@ export const query = async (text: string, params?: any[]): Promise<any> => {
     const duration = Date.now() - start
 
     if (process.env.NODE_ENV === "development") {
-      console.log("📊 Executed query:", {
+      console.log("Executed query:", {
         text: text.replace(/\s+/g, " ").trim(),
         duration: `${duration}ms`,
         rows: result.rowCount,
@@ -125,7 +125,7 @@ export const transaction = async (
 export const closePool = async (): Promise<void> => {
   try {
     await pool.end()
-    console.log("📊 Database pool closed")
+    console.log("Database pool closed")
   } catch (error) {
     console.error("❌ Error closing database pool:", error)
   }
