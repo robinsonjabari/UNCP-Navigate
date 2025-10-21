@@ -26,13 +26,6 @@ UNCP Navigate is a full-stack web application designed to help students, faculty
 - **Authentication**: JWT
 - **API Documentation**: Swagger/OpenAPI
 
-### Frontend
-
-- **Framework**: React with TypeScript
-- **State Management**: Context API / Redux Toolkit
-- **Styling**: CSS Modules / Styled Components
-- **Maps**: Leaflet / MapBox
-
 ### DevOps
 
 - **Containerization**: Docker & Docker Compose
