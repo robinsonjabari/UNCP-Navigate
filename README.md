@@ -12,7 +12,6 @@ UNCP Navigate is a full-stack web application designed to help students, faculty
 - 📍 Real-time location tracking
 - 🚶 Walking directions between buildings
 - 🏢 Building and room information
-- 📊 Analytics and reporting
 - 🔐 User authentication
 - 📱 Mobile-responsive design
 
