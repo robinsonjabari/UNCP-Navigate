@@ -1,4 +1,4 @@
-import { defineConfig } from "vite"
+import { defineConfig } from "vitest/config"
 import react from "@vitejs/plugin-react"
 import path from "path"
 
@@ -19,18 +19,19 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
+    port: 3001,
     host: true,
     proxy: {
       "/api": {
-        target: "http://localhost:5000",
+        // Backend runs on 3000 by default
+        target: "http://localhost:3000",
         changeOrigin: true,
         secure: false,
       },
     },
   },
   preview: {
-    port: 3000,
+    port: 3001,
     host: true,
   },
   build: {

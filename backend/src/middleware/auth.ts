@@ -132,9 +132,7 @@ export const authenticate = async (
   }
 }
 
-/**
- * Middleware to authorize specific roles
- */
+/**Middleware to authorize specific roles*/
 export const authorize = (allowedRoles: string[]) => {
   return (req: Request, res: Response, next: NextFunction): void => {
     if (!req.user) {
@@ -161,9 +159,7 @@ export const authorize = (allowedRoles: string[]) => {
   }
 }
 
-/**
- * Optional authentication middleware - adds user if token is valid but doesn't require it
- */
+/**Optional authentication middleware - adds user if token is valid but doesn't require it*/
 export const optionalAuthenticate = async (
   req: Request,
   _res: Response,
@@ -215,9 +211,7 @@ export const optionalAuthenticate = async (
   }
 }
 
-/**
- * Generate JWT token for user
- */
+/**Generate JWT token for user*/
 export const generateToken = (user: {
   id: string
   email: string
@@ -245,9 +239,7 @@ export const generateToken = (user: {
   )
 }
 
-/**
- * Generate refresh token for user
- */
+/**Generate refresh token for user */
 export const generateRefreshToken = (user: {
   id: string
   email: string
@@ -274,9 +266,7 @@ export const generateRefreshToken = (user: {
   )
 }
 
-/**
- * Verify refresh token
- */
+/**Verify refresh token*/
 export const verifyRefreshToken = (
   token: string
 ): { id: string; email: string } => {
@@ -298,9 +288,7 @@ export const verifyRefreshToken = (
   }
 }
 
-/**
- * Middleware to log authentication attempts
- */
+/**Middleware to log authentication attempts*/
 export const logAuthAttempt = (
   req: Request,
   res: Response,
@@ -324,7 +312,7 @@ export const logAuthAttempt = (
         console.log("Auth attempt:", logData)
       }
 
-      // In production, you might want to store this in a separate logging system
+      // In production,store in a separate logging system
       // or database table for security monitoring
     }
 

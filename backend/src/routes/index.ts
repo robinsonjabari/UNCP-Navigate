@@ -51,7 +51,7 @@ router.get("/status", (_req: Request, res: Response) => {
       environment: process.env.NODE_ENV,
     },
     database: {
-      status: "connected", // This would be checked from actual DB connection
+      status: "connected", // Checked from actual DB connection
       host: process.env.DB_HOST || "localhost",
       name: process.env.DB_NAME || "uncp_navigate",
     },

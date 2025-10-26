@@ -2,6 +2,8 @@ import { Router, Request, Response } from "express"
 import { query, param, body } from "express-validator"
 import { validateRequest } from "../middleware/validate"
 import { authenticate, authorize } from "../middleware/auth"
+import pool from "../db/pool"
+import { PlacesService } from "../services/places.service"
 
 const router = Router()
 
@@ -13,18 +15,8 @@ const router = Router()
 router.get(
   "/",
   [
-    query("category")
-      .optional()
-      .isIn([
-        "academic",
-        "administrative",
-        "dining",
-        "recreation",
-        "residence",
-        "parking",
-        "other",
-      ])
-      .withMessage("Invalid category"),
+    // Accept either TitleCase or lowercase categories
+    query("category").optional().isString().withMessage("Invalid category"),
     query("search")
       .optional()
       .isLength({ min: 1, max: 100 })
@@ -39,45 +31,31 @@ router.get(
       .withMessage("Offset must be a non-negative integer"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Implement places retrieval from database
-      const places = [
-        {
-          id: "1",
-          name: "Chavis Student Center",
-          description:
-            "Main student center with dining, offices, and meeting spaces",
-          category: "administrative",
-          coordinates: { lat: 34.727, lng: -79.0187 },
-          address: "1 University Dr, Pembroke, NC 28372",
-          hours: { open: "07:00", close: "22:00" },
-          amenities: ["WiFi", "Food Court", "Meeting Rooms", "ATM"],
-          accessibility: true,
-          images: ["/images/chavis-center.jpg"],
-        },
-        {
-          id: "2",
-          name: "Mary Livermore Library",
-          description:
-            "Main campus library with study spaces and research resources",
-          category: "academic",
-          coordinates: { lat: 34.7265, lng: -79.0175 },
-          address: "1 University Dr, Pembroke, NC 28372",
-          hours: { open: "08:00", close: "23:00" },
-          amenities: ["WiFi", "Study Rooms", "Computer Lab", "Printing"],
-          accessibility: true,
-          images: ["/images/library.jpg"],
-        },
-      ]
+      const service = new PlacesService(pool as any)
+
+      const limit = Math.min(parseInt(String(req.query.limit ?? "50"), 10), 100)
+      const offset = Math.max(parseInt(String(req.query.offset ?? "0"), 10), 0)
+      const categoryRaw =
+        (req.query.category as string | undefined) ?? undefined
+      // Normalize category to lowercase to match DB
+      const category = categoryRaw ? categoryRaw.toLowerCase() : undefined
+      const search = (req.query.search as string | undefined) ?? undefined
+
+      const searchParams: any = { limit, offset }
+      if (category) searchParams.category = category
+      if (search) searchParams.search = search
+
+      const { places, total } = await service.getAllPlaces(searchParams)
 
       res.json({
         places,
         pagination: {
-          total: places.length,
-          limit: parseInt(req.query.limit as string) || 50,
-          offset: parseInt(req.query.offset as string) || 0,
-          hasMore: false,
+          total,
+          limit,
+          offset,
+          hasMore: offset + places.length < total,
         },
       })
     } catch (error) {
@@ -94,36 +72,17 @@ router.get(
 router.get(
   "/:id",
   [
-    param("id")
-      .isLength({ min: 1, max: 50 })
-      .withMessage("Invalid place ID format"),
+    param("id").isUUID().withMessage("Invalid place ID format"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Implement single place retrieval from database
-      const place = {
-        id: req.params.id,
-        name: "Chavis Student Center",
-        description:
-          "Main student center with dining, offices, and meeting spaces",
-        category: "administrative",
-        coordinates: { lat: 34.727, lng: -79.0187 },
-        address: "1 University Dr, Pembroke, NC 28372",
-        hours: { open: "07:00", close: "22:00" },
-        amenities: ["WiFi", "Food Court", "Meeting Rooms", "ATM"],
-        accessibility: true,
-        images: ["/images/chavis-center.jpg"],
-        floor_plans: [
-          "/images/chavis-floor-1.jpg",
-          "/images/chavis-floor-2.jpg",
-        ],
-        reviews: {
-          average: 4.2,
-          count: 156,
-        },
+      const service = new PlacesService(pool as any)
+      const place = await service.getPlaceById(req.params.id)
+      if (!place) {
+        res.status(404).json({ message: "Place not found" })
+        return
       }
-
       res.json({ place })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
@@ -149,13 +108,13 @@ router.post(
       .withMessage("Description must be between 10 and 500 characters"),
     body("category")
       .isIn([
-        "academic",
-        "administrative",
-        "dining",
-        "recreation",
-        "residence",
-        "parking",
-        "other",
+        "Academic",
+        "Administrative",
+        "Dining",
+        "Recreation",
+        "Residence",
+        "Parking",
+        "Other",
       ])
       .withMessage("Invalid category"),
     body("coordinates.lat")
@@ -169,20 +128,18 @@ router.post(
       .withMessage("Address must be between 10 and 200 characters"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Implement place creation in database
-      const newPlace = {
-        id: "new-place-id",
+      const service = new PlacesService(pool as any)
+      // Normalize category to lowercase for DB
+      const payload = {
         ...req.body,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        category: (req.body.category as string).toLowerCase(),
       }
-
-      res.status(201).json({
-        message: "Place created successfully",
-        place: newPlace,
-      })
+      const created = await service.createPlace(payload)
+      res
+        .status(201)
+        .json({ message: "Place created successfully", place: created })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
     }
@@ -210,17 +167,18 @@ router.put(
       .withMessage("Description must be between 10 and 500 characters"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Implement place update in database
-      res.json({
-        message: "Place updated successfully",
-        place: {
-          id: req.params.id,
-          ...req.body,
-          updatedAt: new Date().toISOString(),
-        },
-      })
+      const service = new PlacesService(pool as any)
+      const updates = { ...req.body }
+      if (updates.category)
+        updates.category = String(updates.category).toLowerCase()
+      const updated = await service.updatePlace(req.params.id, updates)
+      if (!updated) {
+        res.status(404).json({ message: "Place not found" })
+        return
+      }
+      res.json({ message: "Place updated successfully", place: updated })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
     }
@@ -240,10 +198,14 @@ router.delete(
     param("id").isUUID().withMessage("Invalid place ID format"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Implement place deletion from database using req.params.id
-      void req // Will use req.params.id when implemented
+      const service = new PlacesService(pool as any)
+      const ok = await service.deletePlace(req.params.id)
+      if (!ok) {
+        res.status(404).json({ message: "Place not found" })
+        return
+      }
       res.json({ message: "Place deleted successfully" })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
@@ -269,20 +231,19 @@ router.get(
       .withMessage("Radius must be between 0.1 and 10 km"),
     validateRequest,
   ],
-  async (req: Request, res: Response) => {
+  async (req: Request, res: Response): Promise<void> => {
     try {
-      // TODO: Implement nearby places search using req.query lat/lng/radius
-      void req // Will use req.query parameters when implemented
-      const nearbyPlaces = [
-        {
-          id: "1",
-          name: "Chavis Student Center",
-          distance: 0.15, // km
-          coordinates: { lat: 34.727, lng: -79.0187 },
-        },
-      ]
+      const service = new PlacesService(pool as any)
+      const lat = Number(req.params.lat)
+      const lng = Number(req.params.lng)
+      const radius = req.query.radius ? Number(req.query.radius) : 1
+      const category = (req.query.category as string | undefined)?.toLowerCase()
 
-      res.json({ places: nearbyPlaces })
+      const nearParams: any = { lat, lng, radius }
+      if (category) nearParams.category = category
+
+      const places = await service.findNearbyPlaces(nearParams)
+      res.json({ places })
     } catch (error) {
       res.status(500).json({ message: "Internal server error" })
     }

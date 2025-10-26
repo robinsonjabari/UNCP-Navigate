@@ -1,8 +1,10 @@
 import axios, { AxiosInstance, AxiosResponse } from "axios"
 import Cookies from "js-cookie"
 
-// API Configuration - Update these URLs to match your backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+// API base URL
+// In dev, prefer a relative base "/api" so Vite's proxy forwards to the backend.
+// In prod, set VITE_API_URL to your API origin (e.g., https://api.example.com/api).
+const API_BASE_URL = import.meta.env.VITE_API_URL || "/api"
 const TOKEN_COOKIE_NAME = "uncp_nav_token"
 
 class ApiClient {
@@ -47,7 +49,8 @@ class ApiClient {
   setToken(token: string): void {
     Cookies.set(TOKEN_COOKIE_NAME, token, {
       expires: 7,
-      secure: true,
+      // Only mark secure over HTTPS so cookies work on http://localhost in dev
+      secure: window.location.protocol === "https:",
       sameSite: "strict",
     })
   }

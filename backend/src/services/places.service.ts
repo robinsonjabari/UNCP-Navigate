@@ -145,8 +145,12 @@ export class PlacesService {
   ): Promise<Place> {
     try {
       const query = `
-        INSERT INTO places (name, description, category, coordinates, address, hours, amenities, accessibility, images, floor_plans)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+          INSERT INTO places (
+            name, description, category, coordinates, address, 
+            hours, amenities, accessibility, images, floor_plans, geom
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 
+            ST_SetSRID(ST_MakePoint($11, $12), 4326))
         RETURNING *
       `
 
@@ -161,6 +165,8 @@ export class PlacesService {
         place.accessibility,
         place.images ? JSON.stringify(place.images) : null,
         place.floor_plans ? JSON.stringify(place.floor_plans) : null,
+        place.coordinates.lng, // longitude for geom
+        place.coordinates.lat, // latitude for geom
       ]
 
       const result = await this.pool.query(query, values)
@@ -245,25 +251,30 @@ export class PlacesService {
   }
 
   /**
-   * Find places near a coordinate
+   * Find places near a coordinate using PostGIS
    */
   async findNearbyPlaces(params: NearbySearchParams): Promise<Place[]> {
     try {
+      // Use PostGIS ST_DWithin for efficient spatial query
+      // ST_Distance returns meters, so convert radius from km to meters
       let query = `
         SELECT *, 
-        (6371 * acos(cos(radians($1)) * cos(radians((coordinates->>'lat')::float)) * 
-        cos(radians((coordinates->>'lng')::float) - radians($2)) + 
-        sin(radians($1)) * sin(radians((coordinates->>'lat')::float)))) AS distance
+        ST_Distance(
+          geom::geography,
+          ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography
+        ) / 1000 AS distance
         FROM places
-        WHERE (6371 * acos(cos(radians($1)) * cos(radians((coordinates->>'lat')::float)) * 
-        cos(radians((coordinates->>'lng')::float) - radians($2)) + 
-        sin(radians($1)) * sin(radians((coordinates->>'lat')::float)))) <= $3
+        WHERE ST_DWithin(
+          geom::geography,
+          ST_SetSRID(ST_MakePoint($2, $1), 4326)::geography,
+          $3 * 1000
+        )
       `
 
       const values: (string | number)[] = [
         params.lat,
         params.lng,
-        params.radius || 1.0,
+        params.radius || 1.0, // Default 1km radius
       ]
       let paramCount = 3
 
@@ -278,8 +289,8 @@ export class PlacesService {
       const result = await this.pool.query(query, values)
       return result.rows.map((row) => {
         const place = this.mapRowToPlace(row)
-        // Add distance to the place object
-        ;(place as any).distance = parseFloat(row.distance)
+        // Add distance to the place object (in kilometers)
+        ;(place as any).distance = parseFloat(row.distance).toFixed(2)
         return place
       })
     } catch (error) {
